@@ -64,7 +64,8 @@ dependencies {
 
 	include(implementation("com.moulberry:mixinconstraints:1.0.8"))
 
-    modCompileOnly(rootProject.files('deps/DistantHorizons-2.3.0-b-RC3-1.21.4-neoforge-fabric.jar'))
+	// I built with https://modrinth.com/mod/distanthorizons/version/2.3.0-b-1.21.1 instead of RC3
+    modCompileOnly(rootProject.files('deps/DistantHorizons-fabric-neoforge-2.3.0-b-1.21.1.jar'))
 
     modCompileOnly("maven.modrinth:sodium:RncWhTxD")
     modCompileOnly("maven.modrinth:iris:kuOV4Ece")
