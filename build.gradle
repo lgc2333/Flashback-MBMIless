@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-	id 'fabric-loom' version '1.8-SNAPSHOT'
+	id 'fabric-loom' version '1.10-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version "7.1.2"
 	id 'maven-publish'
 }
@@ -64,8 +64,8 @@ dependencies {
 
 	include(implementation("com.moulberry:mixinconstraints:1.0.8"))
 
-	// I built with https://modrinth.com/mod/distanthorizons/version/2.3.0-b-1.21.1 instead of RC3
-    modCompileOnly(rootProject.files('deps/DistantHorizons-fabric-neoforge-2.3.0-b-1.21.1.jar'))
+	// I built with https://modrinth.com/mod/distanthorizons/version/2.3.2-b-1.21.1 instead of 2.3.0 RC3
+    modCompileOnly(rootProject.files('deps/DistantHorizons-neoforge-fabric-2.3.2-b-1.21.1.jar'))
 
     modCompileOnly("maven.modrinth:sodium:RncWhTxD")
     modCompileOnly("maven.modrinth:iris:kuOV4Ece")
