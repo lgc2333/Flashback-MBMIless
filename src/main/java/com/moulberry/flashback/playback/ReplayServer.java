@@ -10,6 +10,7 @@ import com.moulberry.flashback.configuration.FlashbackConfig;
 import com.moulberry.flashback.ext.ConnectionExt;
 import com.moulberry.flashback.ext.LevelChunkExt;
 import com.moulberry.flashback.TempFolderProvider;
+import com.moulberry.flashback.ext.ServerTickRateManagerExt;
 import com.moulberry.flashback.keyframe.handler.ReplayServerKeyframeHandler;
 import com.moulberry.flashback.packet.FlashbackAccurateEntityPosition;
 import com.moulberry.flashback.packet.FlashbackClearEntities;
@@ -68,6 +69,7 @@ import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ConfigurationTask;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.stats.ServerStatsCounter;
 import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.Entity;
@@ -80,10 +82,12 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
@@ -405,6 +409,13 @@ public class ReplayServer extends IntegratedServer {
                         player.connection.disconnect(shutdownReason);
                     }
                 }
+            }
+
+            @Override
+            public ServerStatsCounter getPlayerStats(Player player) {
+                File statsDir = this.getServer().getWorldPath(LevelResource.PLAYER_STATS_DIR).toFile();
+                File statsFile = new File(statsDir, player.getUUID() + ".json");
+                return new ServerStatsCounter(this.getServer(), statsFile);
             }
         });
 
@@ -866,6 +877,8 @@ public class ReplayServer extends IntegratedServer {
             this.replayPaused = true;
         }
 
+        ServerTickRateManager tickRateManager = this.tickRateManager();
+        ((ServerTickRateManagerExt)tickRateManager).flashback$setSuppressClientUpdates(true);
         if (Flashback.EXPORT_JOB != null || this.targetTick == this.currentTick || normalPlayback || this.isFrozen) {
             this.runUpdates(booleanSupplier);
         } else {
@@ -896,6 +909,7 @@ public class ReplayServer extends IntegratedServer {
                 this.fastForwarding = false;
             }
         }
+        ((ServerTickRateManagerExt)tickRateManager).flashback$setSuppressClientUpdates(false);
 
         if (this.forceApplyKeyframes.compareAndSet(true, false)) {
             ((MinecraftExt)Minecraft.getInstance()).flashback$applyKeyframes();
@@ -1153,10 +1167,12 @@ public class ReplayServer extends IntegratedServer {
                     if (tickRateManager.isFrozen()) {
                         tickRateManager.setFrozen(false);
                     }
+                    ((ServerTickRateManagerExt)tickRateManager).flashback$setSuppressClientUpdates(false);
                     for (ReplayPlayer replayViewer : this.replayViewers) {
                         ServerPlayNetworking.send(replayViewer, FlashbackForceClientTick.INSTANCE);
                     }
                     tickRateManager.setFrozen(true);
+                    ((ServerTickRateManagerExt)tickRateManager).flashback$setSuppressClientUpdates(true);
                 } else if (!tickRateManager.isFrozen()) {
                     tickRateManager.setFrozen(true);
                 }

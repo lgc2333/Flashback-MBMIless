@@ -20,6 +20,7 @@ import com.moulberry.flashback.keyframe.handler.MinecraftKeyframeHandler;
 import com.moulberry.flashback.keyframe.handler.TickrateKeyframeCapture;
 import com.moulberry.flashback.state.EditorState;
 import com.moulberry.flashback.playback.ReplayServer;
+import com.moulberry.flashback.visuals.AccurateEntityPositionHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Camera;
@@ -294,6 +295,16 @@ public class ExportJob {
 
             this.updateClientFreeze(frozen);
 
+            DeltaTracker.Timer timer = Minecraft.getInstance().timer;
+            timer.updateFrozenState(frozen);
+            timer.updatePauseState(false);
+            timer.deltaTicks = deltaTicksFloat;
+            timer.realtimeDeltaTicks = deltaTicksFloat;
+            timer.deltaTickResidual = (float) partialClientTick;
+            timer.pausedDeltaTickResidual = (float) partialClientTick;
+
+            AccurateEntityPositionHandler.apply(Minecraft.getInstance().level, timer);
+
             KeyframeHandler keyframeHandler = new MinecraftKeyframeHandler(Minecraft.getInstance());
             this.settings.editorState().applyKeyframes(keyframeHandler, (float)(this.settings.startTick() + currentTickDouble));
 
@@ -307,14 +318,6 @@ public class ExportJob {
             PerfectFrames.waitUntilFrameReady();
             FogRenderer.setupNoFog();
             RenderSystem.enableCull();
-
-            DeltaTracker.Timer timer = Minecraft.getInstance().timer;
-            timer.updateFrozenState(frozen);
-            timer.updatePauseState(false);
-            timer.deltaTicks = deltaTicksFloat;
-            timer.realtimeDeltaTicks = deltaTicksFloat;
-            timer.deltaTickResidual = (float) partialClientTick;
-            timer.pausedDeltaTickResidual = (float) partialClientTick;
 
             start = System.nanoTime();
             Minecraft.getInstance().gameRenderer.render(timer, true);
