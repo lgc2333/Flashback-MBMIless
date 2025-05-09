@@ -1098,7 +1098,11 @@ public class ReplayServer extends IntegratedServer {
         }
 
         // Tick underlying server
-        super.tickServer(booleanSupplier);
+        try {
+            super.tickServer(booleanSupplier);
+        } catch (UnsupportedOperationException err) {
+            // Ignore
+        }
 
         // Teleport entities
         if (!this.isFrozen && !this.needsPositionUpdate.isEmpty()) {
